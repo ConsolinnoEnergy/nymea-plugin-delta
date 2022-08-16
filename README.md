@@ -1,2 +1,0 @@
-# Nymea Plugin Delta
-

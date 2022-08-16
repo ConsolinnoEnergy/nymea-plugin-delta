@@ -1,0 +1,71 @@
+{
+    "displayName": "delta",
+    "name": "Delta",
+    "id": "d8931c3c-2e13-480c-84e2-b491c26538c7",
+    "vendors": [
+        {
+            "name": "nymea",
+            "displayName": "nymea",
+            "id": "4f5d30f5-df94-4bd9-8c1b-12ebab9b2d62",
+            "thingClasses": [
+                {
+                    "id": "884a515c-1777-49b4-8934-7b6456f19100",
+                    "name": "deltainverter",
+                    "displayName": "Deltainverter",
+                    "createMethods": ["user", "discovery"],
+                    "interfaces": ["smartmeterproducer" , "connectable"],
+                    "paramTypes": [
+                        {
+                            "id": "47126dce-2f1f-47d2-a0e6-2397353482bb",
+                            "name": "serialPort",
+                            "displayName": "Serial port",
+                            "type": "QString",
+                            "inputType": "TextLine",
+                            "defaultValue": "ttyAMC0"
+                        },
+                        {
+                            "id": "18da1dd3-dba6-4ddf-897d-4ba0c1a6ef50",
+                            "name": "baudrate",
+                            "displayName": "Baudrate",
+                            "type": "int",
+                            "inputType": "TextLine",
+                            "defaultValue": 19200
+                        }
+
+
+                    ],
+                    "stateTypes": [
+                        {
+                            "id": "746967c4-ef56-4948-8cf5-32dfc0eab6eb",
+                            "name": "connected",
+                            "displayName": "reachable",
+                            "displayNameEvent": "reachable changed",
+                            "defaultValue": false,
+                            "type": "bool"
+                        },
+                        {
+                            "id": "3a879d9c-474c-4e4f-899b-30814ee2e0ba",
+                            "name": "currentPower",
+                            "displayName": "CurrentPower",
+                            "displayNameEvent": "Current Power Changed",
+                            "type": "double",
+                            "unit": "Watt",
+                            "defaultValue": 0
+                        },
+                        {
+                            "id": "70a7c868-fbdb-44a3-a706-96924c9c0ec7",
+                            "name": "totalEnergyProduced",
+                            "displayName": "TotalEnergyProduced",
+                            "displayNameEvent": "Total Energy Changed",
+                            "type": "double",
+                            "unit": "KiloWattHour",
+                            "defaultValue": 0.00
+                        }
+
+
+                    ]
+                }
+            ]
+        }
+    ]
+}

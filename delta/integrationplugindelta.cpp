@@ -28,22 +28,6 @@
 *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/*!
-    \page ws2812fx.html
-    \title WS2812FX Control
-    \brief Plug-In to control WS2812FX over USB
-
-    \ingroup plugins
-    \ingroup nymea-plugins
-
-    \chapter Plugin properties
-    Following JSON file contains the definition and the description of all available \l{ThingClass}{DeviceClasses}
-    and \l{Vendor}{Vendors} of this \l{DevicePlugin}.
-
-    For more details how to read this JSON file please check out the documentation for \l{The plugin JSON File}.
-
-    \quotefile plugins/deviceplugins/ws2812fx/devicepluginws2812fx.json
-*/
 #include <QColor>
 #include "integrationplugindelta.h"
 #include "plugininfo.h"
@@ -83,7 +67,8 @@ void IntegrationPluginDelta::setupThing(ThingSetupInfo *info)
     // if an error occurs serial Port sends a signal, which then is handeled in the onSerialError function
     connect(serialPort, SIGNAL(error(QSerialPort::SerialPortError)), this, SLOT(onSerialError(QSerialPort::SerialPortError)));
     // if the serial Port sends the signal readyRead, handle it with the onReadyRead function
-    connect(serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+    //connect(serialPort, SIGNAL(readyRead()), this, SLOT(onReadyRead()));
+    connect(serialPort, &QSerialPort::readyRead, this, &IntegrationPluginDelta::onReadyRead );
 
     // set connected state to true
     qCDebug(dcDelta()) << "Setup successfully serial port" << interface;
@@ -99,6 +84,8 @@ void IntegrationPluginDelta::setupThing(ThingSetupInfo *info)
         // every 5seconds check if the connection is still running
         connect(m_reconnectTimer, &QTimer::timeout, this, &IntegrationPluginDelta::onReconnectTimer);
     }
+
+
 
     info->finish(Thing::ThingErrorNoError);
 }
@@ -146,13 +133,24 @@ void IntegrationPluginDelta::thingRemoved(Thing *thing)
 }
 
 
+void IntegrationPluginDelta::onCurrentPower(Thing *thing){
 
+    sendCommand(thing, CommandType::CurrentPower);
 
-void IntegrationPluginDelta::update(Thing *thing)
-{
-      sendCommand(thing, CommandType::TotalEnergy);
-      sendCommand(thing, CommandType::CurrentPower);
 }
+
+void IntegrationPluginDelta::onTotalEnergy(Thing *thing){
+
+    sendCommand(thing, CommandType::TotalEnergy);
+
+}
+
+
+//void IntegrationPluginDelta::update(Thing *thing)
+//{
+//      sendCommand(thing, CommandType::TotalEnergy);
+//      sendCommand(thing, CommandType::CurrentPower);
+//}
 
 
 // for reusability this function needs to be changed if you want to integrate a similar thing
@@ -201,6 +199,17 @@ void IntegrationPluginDelta::read(Thing *thing, QByteArray data)
             qint16 commandBytes = (data.at(4) << 8) + data.at(5);
 
             switch (commandBytes) {
+            case CommandType::TesterID:{
+                if (lengthByte != 0x04){
+                    qCDebug(dcDelta()) << "Size error Databyte" ;
+                    return;
+                }
+                // if correct read it and set the state accordingly
+                quint32 testerID{0};
+                testerID = ((testerID | data.at(6)) << 8) | data.at(7);
+                qCDebug(dcDelta()) << "got TesterID: " << testerID;
+                break;
+            }
             case CommandType::TotalEnergy:{
                 if (lengthByte != 0x06){
                     qCDebug(dcDelta()) << "Size error Databyte" ;
@@ -209,6 +218,7 @@ void IntegrationPluginDelta::read(Thing *thing, QByteArray data)
                 // if correct read it and set the state accordingly
                 quint32 totalEnergy{0};
                 totalEnergy = ((((((totalEnergy | data.at(6)) << 8) | data.at(7))<< 8) | data.at(8)) << 8) | data.at(9);
+                qCDebug(dcDelta()) << "TotalEnergy: " << totalEnergy;
                 thing->setStateValue(deltainverterTotalEnergyProducedStateTypeId , totalEnergy);
                 break;
             }
@@ -221,7 +231,9 @@ void IntegrationPluginDelta::read(Thing *thing, QByteArray data)
                 // if correct read it and set the state accordingly
                 quint16 currentPower{0};
                 currentPower = ((currentPower | data.at(6)) << 8) | data.at(7);
-                thing->setStateValue(deltainverterCurrentPowerStateTypeId , currentPower);
+                qCDebug(dcDelta()) << "CurrentPower: " << currentPower;
+                thing->setStateValue(deltainverterCurrentPowerStateTypeId , -currentPower);
+                emit currentPowerChanged(thing);
                 break;
             }
             }
@@ -236,15 +248,31 @@ void IntegrationPluginDelta::read(Thing *thing, QByteArray data)
 // function is always used when the QSerialPort is ready to be read
 void IntegrationPluginDelta::onReadyRead()
 {
+
     QSerialPort *serialPort =  static_cast<QSerialPort*>(sender());
     Thing *thing = m_serialPorts.key(serialPort);
 
-    QByteArray data;
-    while (serialPort->canReadLine()) {
-        data = serialPort->readLine();
-        qCDebug(dcDelta() ) << "Message received" << data;
-        read(thing, data);
+    if (serialPort->bytesAvailable() >= 4 ){
+
+        QByteArray buffer_check = serialPort->peek(4);
+        qCDebug(dcDelta() ) << "Size of message: " << buffer_check;
+
+
+        if(serialPort->bytesAvailable() >= buffer_check[3]+7){
+            QByteArray msg = serialPort->readLine(buffer_check[3]+7+1);
+            qCDebug(dcDelta()) << "Message received: " << hex << msg.toHex();
+            read(thing, msg);
+        }
+
+
+
     }
+
+
+
+
+
+
 }
 
 // periodically send messages, such that we actually get the data back
@@ -255,9 +283,13 @@ void IntegrationPluginDelta::postSetupThing(Thing *thing)
         if (!m_pluginTimer) {
             qCDebug(dcDelta()) << "Starting plugin timer...";
             m_pluginTimer = hardwareManager()->pluginTimerManager()->registerTimer(5);
+
+
             connect(m_pluginTimer, &PluginTimer::timeout, this, [this, thing] {
-                update(thing);
+                onCurrentPower(thing);
             });
+
+            connect(this, &IntegrationPluginDelta::currentPowerChanged, this, &IntegrationPluginDelta::onTotalEnergy);
 
             m_pluginTimer->start();
         }
@@ -274,7 +306,7 @@ void IntegrationPluginDelta::onReconnectTimer()
             if (serialPort) {
                 if (serialPort->open(QSerialPort::ReadWrite)) {
                     thing->setStateValue(deltainverterConnectedStateTypeId, true);
-                    update(thing);
+                    onCurrentPower(thing);
 
                 } else {
                     thing->setStateValue(deltainverterConnectedStateTypeId, false);
@@ -305,7 +337,9 @@ void IntegrationPluginDelta::onSerialError(QSerialPort::SerialPortError error)
 QByteArray IntegrationPluginDelta::build(CommandType commandType)
 {
     QByteArray command;
+
     command.append(0x05);   // Header
+    command.append(0x01);   // Header
     command.append(0x02);   // Header
     command.append(commandType >> 8 & 0xFF);    // left 2 bytes (example enum TotalEnergy: 17)
     command.append(commandType & 0xFF);         // right 2 bytes (example enum TotalEnergy: 05)
@@ -315,6 +349,9 @@ QByteArray IntegrationPluginDelta::build(CommandType commandType)
 
     quint8 crc1 = crcResult & 0xFF; // second crc byte
     quint8 crc2 = crcResult >> 8;   // first crc byte
+
+
+
     // note: little Endian thats why second byte first
     command.append(crc1); // second crc byte (example enum TotalEnergy: 05)
     command.append(crc2); // first crc byte (example enum TotalEnergy: 17)
@@ -329,10 +366,12 @@ void IntegrationPluginDelta::sendCommand(Thing *thing, CommandType commandType)
 {
 
     QByteArray command = build(commandType);
-    qDebug(dcDelta()) << "Sending command " << commandType << command;
+    qDebug(dcDelta()) << "Sending command " << commandType << ": " << command.toHex();
     QSerialPort *serialPort = m_serialPorts.value(thing);
     if (!serialPort)
        qCWarning(dcDelta) << "Error, serial port not available";
+
+
     if (serialPort->write(command) != command.length()) {
         qCWarning(dcDelta) << "Error writing to serial port";
 

@@ -51,7 +51,8 @@ public:
     enum CommandType {
         TotalEnergy = 0x1705,
         CurrentPower = 0x1009,
-        enum_count = 2
+        TesterID = 0x0006,
+
     };
     Q_ENUM(CommandType)
 
@@ -79,13 +80,20 @@ private:
     Crc16 *m_crc = new Crc16(0xA001); // 0xA001 is the CRC polynom used by the Delta Inverter protocol.
 
 
+
 private slots:
 
     void onReadyRead();
     void onReconnectTimer();
     void onSerialError(QSerialPort::SerialPortError error);
+    void onCurrentPower(Thing *thing);
+    void onTotalEnergy(Thing *thing);
 
 signals:
+
+    void currentPowerChanged(Thing *thing);
+
+
 
 };
 

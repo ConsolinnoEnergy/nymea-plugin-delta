@@ -1,0 +1,56 @@
+image: 
+
+# Defines stages which are to be executed
+stages:  
+  - build
+  - deploy
+
+##### Development snapshots #####
+.snapshot:
+  only:
+   - main
+   - /^add-ci.*$/
+
+.deploy_template: &deploy_script_templ
+  - apt update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y git
+  - git clone --branch add-other-distro-support https://$GL_UPLOADER_USER:$GL_UPLOADER_PASSWORD@gitlab.consolinno-it.de/leafletfirmware/package-upload.git
+  - ./package-upload/debupload.sh snapshot buster $PWD/build/buster/*.deb
+  - ./package-upload/debupload.sh snapshot focal $PWD/build/focal/*.deb
+
+build:buster:
+  extends: .snapshot
+  image: registry.consolinno-it.de/leafletfirmware/nymea/dockcross-nymea:dc-armv7-nymea-d10-latest
+  stage: build
+  script:
+    - apt-get update
+    - apt-get install -y git-buildpackage python rename
+    - gbp dch -S -a --snapshot-number=`date +"%s"` --ignore-branch
+    - CONFIG_SITE=/etc/dpkg-cross/cross-config.armhf  gosu root dpkg-buildpackage -b -aarmhf -Pcross,nocheck && mkdir -p build/buster && gosu root mv ../*.deb build/buster/
+  artifacts:
+    paths:
+      - build/buster/*.deb
+
+build:focal:
+  extends: .snapshot
+  image: registry.consolinno-it.de/leafletfirmware/nymea/dockcross-nymea:dc-amd64-nymea-focal-latest
+  needs: ["build:buster"]
+  stage: build
+  script:
+    - apt-get update
+    - apt-get install -y git-buildpackage python rename
+    - gbp dch -S -a --snapshot-number=`date +"%s"` --ignore-branch
+    - dpkg-buildpackage -b  && mkdir -p build/focal &&  mv ../*.deb build/focal
+  artifacts:
+    paths:
+      - build/focal/*.deb
+
+
+deploy:
+  extends: .snapshot
+  stage: deploy
+  before_script:
+    - apt-get update
+    - apt-get install -y curl
+  script:
+    - *deploy_script_templ

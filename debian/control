@@ -1,0 +1,21 @@
+Source: nymea-plugin-delta
+Section: utils
+Priority: optional
+Maintainer: M.Bettermann
+Build-depends: debhelper (>= 0.0.0),
+               libnymea-dev (>= 0.26~),
+               libnymea-gpio-dev (>= 1.0.5~),
+               libqt5serialport5-dev,
+               nymea-dev-tools:native,
+               pkg-config,
+               qtbase5-dev,
+               qtconnectivity5-dev
+
+
+Package: nymea-plugin-delta
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: nymea integration plugin for delta inverter
+

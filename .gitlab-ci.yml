@@ -24,6 +24,7 @@ build:buster:
   stage: build
   script:
     - apt-get update
+    - apt -y upgrade
     - apt-get install -y git-buildpackage python rename
     - gbp dch -S -a --snapshot-number=`date +"%s"` --ignore-branch
     - CONFIG_SITE=/etc/dpkg-cross/cross-config.armhf  gosu root dpkg-buildpackage -b -aarmhf -Pcross,nocheck && mkdir -p build/buster && gosu root mv ../*.deb build/buster/
@@ -38,6 +39,7 @@ build:focal:
   stage: build
   script:
     - apt-get update
+    - apt -y upgrade
     - apt-get install -y git-buildpackage python rename
     - gbp dch -S -a --snapshot-number=`date +"%s"` --ignore-branch
     - |

@@ -1,0 +1,5 @@
+*.pro.user
+builddir
+doc/html
+*.qm
+__pycache__

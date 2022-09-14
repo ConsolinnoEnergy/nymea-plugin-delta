@@ -11,7 +11,7 @@
                 {
                     "id": "884a515c-1777-49b4-8934-7b6456f19100",
                     "name": "deltainverter",
-                    "displayName": "Deltainverter",
+                    "displayName": "Delta RPI M10A",
                     "createMethods": ["user", "discovery"],
                     "interfaces": ["smartmeterproducer", "solarinverter", "connectable"],
                     "paramTypes": [

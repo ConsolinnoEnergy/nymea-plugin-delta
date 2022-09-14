@@ -4,8 +4,8 @@
     "id": "d8931c3c-2e13-480c-84e2-b491c26538c7",
     "vendors": [
         {
-            "name": "nymea",
-            "displayName": "nymea",
+            "name": "delta",
+            "displayName": "Delta",
             "id": "4f5d30f5-df94-4bd9-8c1b-12ebab9b2d62",
             "thingClasses": [
                 {

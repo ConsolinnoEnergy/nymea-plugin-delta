@@ -1,4 +1,4 @@
-nymea-plugin-delta (0.1.0-1) unstable; urgency=medium
+nymea-plugin-delta (0.1.0-1) qa; urgency=medium
 
   [ Michael Bettermann ]
   * first setup

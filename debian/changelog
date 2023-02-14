@@ -1,4 +1,9 @@
-nymea-plugin-delta (0.1.0-1) unstable; urgency=medium
+nymea-plugin-delta (1.5.120-1) qa; urgency=medium
+  * Bumps version number to be in sync with nymea core version: 1.5.1
+
+ -- Leonhard Heizinger <l.heizinger@consolinno.de>  Wed, 14 Dec 2022 10:43:41 +0100
+
+nymea-plugin-delta (0.1.0-1) qa; urgency=medium
 
   [ Michael Bettermann ]
   * first setup

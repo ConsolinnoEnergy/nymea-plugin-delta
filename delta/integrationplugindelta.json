@@ -4,16 +4,16 @@
     "id": "d8931c3c-2e13-480c-84e2-b491c26538c7",
     "vendors": [
         {
-            "name": "nymea",
-            "displayName": "nymea",
+            "name": "delta",
+            "displayName": "Delta",
             "id": "4f5d30f5-df94-4bd9-8c1b-12ebab9b2d62",
             "thingClasses": [
                 {
                     "id": "884a515c-1777-49b4-8934-7b6456f19100",
                     "name": "deltainverter",
-                    "displayName": "Deltainverter",
+                    "displayName": "Delta RPI M10A",
                     "createMethods": ["user", "discovery"],
-                    "interfaces": ["smartmeterproducer", "connectable"],
+                    "interfaces": ["smartmeterproducer", "solarinverter", "connectable"],
                     "paramTypes": [
                         {
                             "id": "47126dce-2f1f-47d2-a0e6-2397353482bb",

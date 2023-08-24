@@ -1,3 +1,7 @@
+nymea-plugin-delta (1.5.120-4) dev; urgency=medium
+   * Software unchanged: New Debian revision for Consolinno HEMS v1.0.1
+ -- Knab Florian <f.knab@consolinno.de>  Thu, 24 Aug 2023 09:43:48 +0100
+
 nymea-plugin-delta (1.5.120-3) qa; urgency=medium
    * Software unchanged: New Debian revision for Consolinno HEMS v0.3.2
  -- Leonhard Heizinger <l.heizinger@consolinno.de>  Wed, 26 Jun 2022 10:28:48 +0100
